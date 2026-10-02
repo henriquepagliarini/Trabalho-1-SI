@@ -1,46 +1,31 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+from dataset import DataSet
+from cart import Cart
+from rn_mlp import Rn
 
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import GridSearchCV
+def main():
+    print("Lendo dados...")
+    dataset = DataSet()
+    dataset.load_data()
+    dataset.split_data()
 
-DATA_PATH = './datasets/vict/10000v/data.csv'
+    print("Treinando CART...")
+    cart = Cart(dataset, 5)
+    cart.train()
+    cart.process_results()
+    
+    print("Treinando RN MLP...")
+    rn = Rn(dataset, 5)
+    rn.train()
+    rn.process_results()
+    
+    cart.show_results()
+    rn.show_results()
+    
+    cart.choose_best_result()
+    rn.choose_best_result()
 
-df = pd.read_csv(DATA_PATH)
-
-x = df[['idade', 'fc', 'fr', 'pas', 'spo2', 'temp', 'pr', 'sg', 'fx', 'queim']]
-y = df['tri']
-
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.30, random_state=42, shuffle=True, stratify=y)
-
-parameters = [
-    {
-        'criterion': ['entropy'],
-        'max_depth': [3],
-        'min_samples_leaf': [50]
-    },
-    {
-        'criterion': ['entropy'],
-        'max_depth': [10],
-        'min_samples_leaf': [20]
-    },
-    {
-        'criterion': ['entropy'],
-        'max_depth': [30],
-        'min_samples_leaf': [1]
-    }
-]
-
-model = DecisionTreeClassifier(random_state=42)
-
-n_folds = 5;
-
-clf = GridSearchCV(model, parameters, cv=n_folds, scoring='f1_macro', verbose=4)
-
-clf.fit(x_train, y_train)
-
-all_models = []
-
-res = clf.cv_results_
+    cart.test_model()
+    rn.test_model()
+    
+if __name__ == '__main__':
+    main()
