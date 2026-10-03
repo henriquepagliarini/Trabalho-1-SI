@@ -6,25 +6,29 @@ class Rn(Classificador):
         parameters = [
             {
                 # Subajustada (U)
-                'hidden_layer_sizes': [(50, 25, 5)],
+                'hidden_layer_sizes': [(6, 2)],
                 'activation': ['relu'],
-                'learning_rate_init': [0.010]
+                'learning_rate_init': [0.05],
+                'solver': ['adam']
             },
             {
                 # Equilibrada (E)
-                'hidden_layer_sizes': [(4, 4, 8, 8, 8)],
+                'hidden_layer_sizes': [(16, 8)],
                 'activation': ['relu'],
-                'learning_rate_init': [0.003]
+                'learning_rate_init': [0.01],
+                'solver': ['adam']
             },
             {
+                # Falta achar uma hiperparametrização certa para esse caso
                 # Sobreajustada (O)
-                'hidden_layer_sizes': [(100, 50)],
+                'hidden_layer_sizes': [(20, 10, 10)],
                 'activation': ['relu'],
-                'learning_rate_init': [0.01]
+                'learning_rate_init': [0.001],
+                'solver': ['adam']
             }
         ]
         
-        model = MLPClassifier(random_state=42, max_iter=250)
+        model = MLPClassifier(random_state=42, max_iter=500)
 
         super().__init__(
             dataset,
