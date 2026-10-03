@@ -1,6 +1,6 @@
 from dataset import DataSet
 from cart import Cart
-from rn_mlp import Rn
+from rn import Rn
 
 def main():
     dataset = DataSet('./datasets/vict/10000v/data.csv')
