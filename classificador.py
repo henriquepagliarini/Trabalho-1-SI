@@ -1,7 +1,13 @@
 import numpy as np
 
 from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
+
+import joblib
 
 class Classificador:
     def __init__(self, dataset, model, parameters, n_folds):
@@ -12,7 +18,7 @@ class Classificador:
 
         self.results = {}
         self.best_result = None
-        self.best_estimator = None
+        self.best_model = None
         
     def train(self):
         self.clf = GridSearchCV(
@@ -23,9 +29,51 @@ class Classificador:
             return_train_score=True
         )
 
-        self.clf.fit(self.dataset.Xm_train, self.dataset.Ym_train)
+        self.clf.fit(self.dataset.Xm, self.dataset.Ym)
 
         self.results = self.clf.cv_results_
+    
+    def retrain(self):
+        print(f"\n========= Retreino - {self.__class__.__name__.upper()} =========")
+        
+        self.best_model = self.model.set_params(**self.best_result['params'])
+        self.best_model.fit(self.dataset.Xm, self.dataset.Ym)
+        
+        y_pred_retrain = self.best_model.predict(self.dataset.Xm)
+        acc_train = accuracy_score(self.dataset.Ym, y_pred_retrain) * 100
+        print(f"Acuracia com dados de treino: {acc_train:.2f}%")
+        
+    def test(self, test_dataset):
+        print(f"\n========= Teste - {self.__class__.__name__.upper()} =========")
+
+        y_pred_test = self.best_model.predict(test_dataset.Xm)
+        Ym = test_dataset.Ym
+        
+        precision = precision_score(Ym, y_pred_test, average='macro')
+        recall = recall_score(Ym, y_pred_test, average='macro')
+        f1 = f1_score(Ym, y_pred_test, average='macro')
+        accuracy = accuracy_score(Ym, y_pred_test) * 100
+        
+        matriz = confusion_matrix(Ym, y_pred_test)
+        
+        print(f"Precisão (macro): ...........{precision:.4f}")
+        print(f"Recall (macro): .............{recall:.4f}")
+        print(f"F1 Score (macro): ...........{f1:.4f}")
+        print(f"Acuracia com dados de teste: {accuracy:.2f}%")
+        
+        print("\nMatriz de confusão:")
+        print("                 PREVISTO")
+        print("         G       Y       R       B")
+        print("REAL")
+        print(f"  G   {matriz[0][0]:5d}   {matriz[0][1]:5d}   {matriz[0][2]:5d}   {matriz[0][3]:5d}")
+        print(f"  Y   {matriz[1][0]:5d}   {matriz[1][1]:5d}   {matriz[1][2]:5d}   {matriz[1][3]:5d}")
+        print(f"  R   {matriz[2][0]:5d}   {matriz[2][1]:5d}   {matriz[2][2]:5d}   {matriz[2][3]:5d}")
+        print(f"  B   {matriz[3][0]:5d}   {matriz[3][1]:5d}   {matriz[3][2]:5d}   {matriz[3][3]:5d}")
+    
+    def save_model(self):
+            filename = f"melhor_{self.__class__.__name__.lower()}.joblib"
+            joblib.dump(self.best_model, filename)
+            print(f"Modelo salvo em: {filename}")
     
     def process_results(self):
         res = self.results
@@ -63,10 +111,10 @@ class Classificador:
             self.models.append(model)
     
     def show_results(self):
-        print(f"\n=============== Classificador {self.__class__.__name__} ===============")
+        print(f"\n=============== Classificador {self.__class__.__name__.upper()} ===============")
         for i, model in enumerate(self.models):
 
-            print(f"Modelo {i + 1}")
+            print(f"\nModelo {i + 1}")
             print(f"Parâmetros: {model['params']}")
 
             print(
@@ -93,16 +141,10 @@ class Classificador:
             )
             print(
                 f"Média das Diferenças..: {model['dif_mean']:.5f}\n"
-                f"DPadrão das diferenças: {model['dif_std']:.5f}\n"
+                f"DPadrão das diferenças: {model['dif_std']:.5f}"
             )
         
     def choose_best_result(self):
-        self.best_estimator = self.clf.best_estimator_
-        print(f"\n=============== Classificador {self.__class__.__name__} ===============")
-        print("\n* Melhor classificador Scikit *")
-        print(f"Parâmetros ..............: {self.clf.best_params_}")
-        print(f"Média F1 de validação....: {self.clf.best_score_:.5f}")
-
         max_f1 = max(model['val_mean'] for model in self.models)
         
         candidates = [
@@ -115,19 +157,15 @@ class Classificador:
             candidates,
             key=lambda x: (x['val_std'], x['dif_mean'], -x['val_mean'])
         )[0]
+
+    def show_best_results(self):
+        print(f"\n=============== Melhor modelo - {self.__class__.__name__.upper()} ===============")
+        print("Melhor classificador Scikit")
+        print(f"Parâmetros ..............: {self.clf.best_params_}")
+        print(f"Média F1 de validação....: {self.clf.best_score_:.5f}")
         
-        print("\n* Melhor modelo *")
+        print("\nMelhor modelo")
         print(f"Parâmetros: {self.best_result['params']}")
         print(f"Validação média de F1........: {self.best_result['val_mean']:.5f}")
         print(f"Validação desvio padrão......: {self.best_result['val_std']:.5f}")
         print(f"Média das difs |treino-valid|: {self.best_result['dif_mean']:.5f}")
-        
-    def test_model(self):
-        print(f"\n=============== Classificador {self.__class__.__name__} ===============")
-        y_pred_train = self.best_estimator.predict(self.dataset.Xm_train)
-        acc_train = accuracy_score(self.dataset.Ym_train, y_pred_train) * 100
-        print(f"\nAcuracia com dados de treino: {acc_train:.2f}%")
-
-        y_pred_test = self.best_estimator.predict(self.dataset.Xm_test)
-        acc_test = accuracy_score(self.dataset.Ym_test, y_pred_test) * 100
-        print(f"Acuracia com dados de teste: {acc_test:.2f}%")
