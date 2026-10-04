@@ -19,10 +19,9 @@ class Rn(Classificador):
                 'solver': ['adam']
             },
             {
-                # Falta achar uma hiperparametrização certa para esse caso
                 # Sobreajustada (O)
-                'hidden_layer_sizes': [(20, 10, 10)],
-                'activation': ['relu'],
+                'hidden_layer_sizes': [(100, 50, 25)],
+                'activation': ['tanh'],
                 'learning_rate_init': [0.001],
                 'solver': ['adam']
             }

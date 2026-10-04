@@ -5,7 +5,8 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 
 import joblib
 
@@ -54,26 +55,18 @@ class Classificador:
         f1 = f1_score(Ym, y_pred_test, average='macro')
         accuracy = accuracy_score(Ym, y_pred_test) * 100
         
-        matriz = confusion_matrix(Ym, y_pred_test)
-        
         print(f"Precisão (macro): ...........{precision:.4f}")
         print(f"Recall (macro): .............{recall:.4f}")
         print(f"F1 Score (macro): ...........{f1:.4f}")
         print(f"Acuracia com dados de teste: {accuracy:.2f}%")
         
-        print("\nMatriz de confusão:")
-        print("                 PREVISTO")
-        print("         G       Y       R       B")
-        print("REAL")
-        print(f"  G   {matriz[0][0]:5d}   {matriz[0][1]:5d}   {matriz[0][2]:5d}   {matriz[0][3]:5d}")
-        print(f"  Y   {matriz[1][0]:5d}   {matriz[1][1]:5d}   {matriz[1][2]:5d}   {matriz[1][3]:5d}")
-        print(f"  R   {matriz[2][0]:5d}   {matriz[2][1]:5d}   {matriz[2][2]:5d}   {matriz[2][3]:5d}")
-        print(f"  B   {matriz[3][0]:5d}   {matriz[3][1]:5d}   {matriz[3][2]:5d}   {matriz[3][3]:5d}")
+        ConfusionMatrixDisplay.from_predictions(Ym, y_pred_test, display_labels=['G', 'Y', 'R', 'B'])
+        plt.gcf().canvas.manager.set_window_title(f"Matriz de confusão - {self.__class__.__name__.upper()}")
     
     def save_model(self):
-            filename = f"melhor_{self.__class__.__name__.lower()}.joblib"
-            joblib.dump(self.best_model, filename)
-            print(f"Modelo salvo em: {filename}")
+        filename = f"melhor_{self.__class__.__name__.lower()}.joblib"
+        joblib.dump(self.best_model, filename)
+        print(f"Modelo salvo em: {filename}")
     
     def process_results(self):
         res = self.results

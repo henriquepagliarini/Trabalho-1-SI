@@ -1,6 +1,7 @@
 from dataset import DataSet
 from cart import Cart
 from rn import Rn
+import matplotlib.pyplot as plt
 
 def main():
     dataset = DataSet('./datasets/vict/10000v/data.csv')
@@ -14,6 +15,7 @@ def main():
     cart.show_results()
     cart.show_best_results()
     print("=================================================")
+    
     print("\nTreinando RN...")
     rn = Rn(dataset, 5)
     rn.train()
@@ -35,6 +37,7 @@ def main():
     
     cart.test(test_dataset)
     rn.test(test_dataset)
+    plt.show()
     
 if __name__ == '__main__':
     main()
