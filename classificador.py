@@ -18,7 +18,6 @@ class Classificador:
         self.n_folds = n_folds
 
         self.results = {}
-        self.best_result = None
         self.best_model = None
         
     def train(self):
@@ -37,7 +36,7 @@ class Classificador:
     def retrain(self):
         print(f"\n========= Retreino - {self.__class__.__name__.upper()} =========")
         
-        self.best_model = self.model.set_params(**self.best_result['params'])
+        self.best_model = self.clf.best_estimator_
         self.best_model.fit(self.dataset.Xm, self.dataset.Ym)
         
         y_pred_retrain = self.best_model.predict(self.dataset.Xm)
@@ -137,28 +136,7 @@ class Classificador:
                 f"DPadrão das diferenças: {model['dif_std']:.5f}"
             )
         
-    def choose_best_result(self):
-        max_f1 = max(model['val_mean'] for model in self.models)
-        
-        candidates = [
-            model 
-            for model in self.models 
-            if model['val_mean'] >= (max_f1 - 0.005)
-        ]
-
-        self.best_result = sorted(
-            candidates,
-            key=lambda x: (x['val_std'], x['dif_mean'], -x['val_mean'])
-        )[0]
-
-    def show_best_results(self):
+    def show_best_model(self):
         print(f"\n=============== Melhor modelo - {self.__class__.__name__.upper()} ===============")
-        print("Melhor classificador Scikit")
         print(f"Parâmetros ..............: {self.clf.best_params_}")
         print(f"Média F1 de validação....: {self.clf.best_score_:.5f}")
-        
-        print("\nMelhor modelo")
-        print(f"Parâmetros: {self.best_result['params']}")
-        print(f"Validação média de F1........: {self.best_result['val_mean']:.5f}")
-        print(f"Validação desvio padrão......: {self.best_result['val_std']:.5f}")
-        print(f"Média das difs |treino-valid|: {self.best_result['dif_mean']:.5f}")
