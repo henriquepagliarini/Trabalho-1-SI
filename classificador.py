@@ -26,22 +26,22 @@ class Classificador:
             self.parameters,
             cv=self.n_folds,
             scoring='f1_macro',
-            return_train_score=True
+            return_train_score=True,
+            refit=False
         )
 
         self.clf.fit(self.dataset.Xm, self.dataset.Ym)
-
         self.results = self.clf.cv_results_
     
     def retrain(self):
         print(f"\n========= Retreino - {self.__class__.__name__.upper()} =========")
-        
-        self.best_model = self.clf.best_estimator_
+
+        self.best_model = self.model.set_params(**self.clf.best_params_)
         self.best_model.fit(self.dataset.Xm, self.dataset.Ym)
         
         y_pred_retrain = self.best_model.predict(self.dataset.Xm)
         acc_train = accuracy_score(self.dataset.Ym, y_pred_retrain) * 100
-        print(f"Acuracia com dados de treino: {acc_train:.2f}%")
+        print(f"Acurácia do treino: {acc_train:.2f}%")
         
     def test(self, test_dataset):
         print(f"\n========= Teste - {self.__class__.__name__.upper()} =========")
@@ -54,10 +54,10 @@ class Classificador:
         f1 = f1_score(Ym, y_pred_test, average='macro')
         accuracy = accuracy_score(Ym, y_pred_test) * 100
         
-        print(f"Precisão (macro): ...........{precision:.4f}")
-        print(f"Recall (macro): .............{recall:.4f}")
-        print(f"F1 Score (macro): ...........{f1:.4f}")
-        print(f"Acuracia com dados de teste: {accuracy:.2f}%")
+        print(f"Precisão.........: {precision:.4f}")
+        print(f"Recall...........: {recall:.4f}")
+        print(f"F1 Score.........: {f1:.4f}")
+        print(f"Acurácia do teste: {accuracy:.2f}%")
         
         ConfusionMatrixDisplay.from_predictions(Ym, y_pred_test, display_labels=['G', 'Y', 'R', 'B'])
         plt.gcf().canvas.manager.set_window_title(f"Matriz de confusão - {self.__class__.__name__.upper()}")
@@ -82,7 +82,7 @@ class Classificador:
                 for f in range(self.n_folds)
                 ])
 
-            dif = (np.abs(train_scores - val_scores))
+            dif = np.abs(train_scores - val_scores)
             
             model = {
                 'params': params,
@@ -110,20 +110,20 @@ class Classificador:
             print(f"Parâmetros: {model['params']}")
 
             print(
-                f"Treino:    F1 por fold: "
+                f"Treino F1.............: "
                 f"{[f'{v:.5f}' for v in model['train_scores']]}"
             )
             print(
-                f"Média T: {model['train_mean']:.5f} "
+                f"Média do Treino F1....: {model['train_mean']:.5f} "
                 f"+- {model['train_std']:.5f}"
             )
 
             print(
-                f"Validação: F1 por fold: "
+                f"Validação F1..........: "
                 f"{[f'{v:.5f}' for v in model['val_scores']]}"
             )
             print(
-                f"Média V: {model['val_mean']:.5f} "
+                f"Média da Validação F1.: {model['val_mean']:.5f} "
                 f"+- {model['val_std']:.5f}"
             )
 
@@ -138,5 +138,25 @@ class Classificador:
         
     def show_best_model(self):
         print(f"\n=============== Melhor modelo - {self.__class__.__name__.upper()} ===============")
-        print(f"Parâmetros ..............: {self.clf.best_params_}")
-        print(f"Média F1 de validação....: {self.clf.best_score_:.5f}")
+        print(f"Parâmetros...........: {self.clf.best_params_}")
+        print(f"Média F1 de validação: {self.clf.best_score_:.5f}")
+
+    #Função de teste só pra ver se ta td certo com os joblib
+    #---------- REMOVER DEPOIS ----------
+    def test_joblib(self, filename, test_dataset):
+        print(f"\n========= Testando {filename} =========")
+
+        model = joblib.load(filename)
+
+        Ym = test_dataset.Ym
+        y_pred = model.predict(test_dataset.Xm)
+
+        precision = precision_score(Ym, y_pred, average='macro')
+        recall = recall_score(Ym, y_pred, average='macro')
+        f1 = f1_score(Ym, y_pred, average='macro')
+        accuracy = accuracy_score(Ym, y_pred)
+
+        print(f"Precisão: {precision:.4f}")
+        print(f"Recall..: {recall:.4f}")
+        print(f"F1 Score:{f1:.4f}")
+        print(f"Acurácia: {accuracy * 100:.2f}%")

@@ -37,5 +37,12 @@ def main():
     rn.test(test_dataset)
     plt.show()
     
+    print("testando joblib")
+    
+    #Testando joblibs
+    #------- REMOVER DEPOIS -------
+    cart.test_joblib('melhor_cart.joblib', test_dataset)
+    rn.test_joblib('melhor_rn.joblib', test_dataset)
+
 if __name__ == '__main__':
     main()
