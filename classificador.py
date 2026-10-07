@@ -140,23 +140,3 @@ class Classificador:
         print(f"\n=============== Melhor modelo - {self.__class__.__name__.upper()} ===============")
         print(f"Parâmetros...........: {self.clf.best_params_}")
         print(f"Média F1 de validação: {self.clf.best_score_:.5f}")
-
-    #Função de teste só pra ver se ta td certo com os joblib
-    #---------- REMOVER DEPOIS ----------
-    def test_joblib(self, filename, test_dataset):
-        print(f"\n========= Testando {filename} =========")
-
-        model = joblib.load(filename)
-
-        Ym = test_dataset.Ym
-        y_pred = model.predict(test_dataset.Xm)
-
-        precision = precision_score(Ym, y_pred, average='macro')
-        recall = recall_score(Ym, y_pred, average='macro')
-        f1 = f1_score(Ym, y_pred, average='macro')
-        accuracy = accuracy_score(Ym, y_pred)
-
-        print(f"Precisão: {precision:.4f}")
-        print(f"Recall..: {recall:.4f}")
-        print(f"F1 Score:{f1:.4f}")
-        print(f"Acurácia: {accuracy * 100:.2f}%")
